@@ -118,3 +118,45 @@ def getWeatherInformation(text):
                 telop_icon = ':cloud:'
             else:
                 telop_icon = ':fire:'
+            #気温の記述を作成
+            temperature = forecast["temperature"]
+            min_temp = temperature["min"]
+            max_temp = temperature["max"]
+            temp_text = ''
+            if min_temp is not None:
+                if len(min_temp) > 0:
+                    temp_text += '\n最低気温は' + min_temp["celsius"] + "度です。"
+                if len(max_temp) > 0:
+                    temp_text += '\n最高気温は' + max_temp["celsius"] + "度です。"
+                forecast_array.append(forecast["dateLabel"] + ' ' + telop + telop_icon + temp_text)
+            if len(forecast_array) > 0:
+                response_string += '\n\n'.join(forecast_array)
+            response_string += '\n\n' + description
+
+        #例外処理
+    except TypeError as e:
+        response_string "すみません…地名をうまく読み取れませんでした…"
+        print(e)
+        print("Input Data Type is not a string. Please try again.")
+
+    except EmptyError as e:
+        response_string = "地名の指定がされていません…すみませんが、「天気　地名」再度入力してください。"
+        print(e)
+        print("Input Data is Empty. Please try again.")
+
+     except OverLengthError as e:
+        response_string = "すみません… 地名は5文字以内の全角日本語で入力してください。"
+        print(e)
+        print("Over 5 characters. Please try again.")
+
+    except KeyError as e:
+        response_string = "すみません… 地名が検索にヒットしませんでした…"
+        print(e)
+        print("Your Input couldn't discover. Please try another word again.")
+
+    except Exception as e:
+        response_string = "すみません… 何らかのエラーが発生しました"
+        print(e)
+        print("Unknown error.")
+
+    return response_string
