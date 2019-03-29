@@ -1,6 +1,9 @@
 import json
 import city_list
 from urllib.request import urlopen, Request
+#urllibl.request.Request class lets you do a lot of things like import url Input
+#in the instructor, the host, the Data
+#urlopen opens the url that is passed
 
 #れ外処理のクラス定義
 
@@ -53,15 +56,18 @@ def getWeatherInformation(text):
     #入力文字数の上限を設定
     max_len_place = 5
 
+    #Try clause evaluates the code below, and if any exceptions occur it will run
+    #the Except clauses below
     try:
         #入力文字列がから出ないことを確認
         if len(div_text) < 2:
             raise EmptyError(text, "InputCheckError")
-
+        #In the original text argument passed to the function, text[1] will be the place name
         place = div_text[1]
         len_place = len(place)
 
         #入力の型をチェック
+        #If place is not a string raise the TypeError
         if isinstance(place, str) == False:
             raise TypeError(place, "InputCheckError")
 
@@ -69,7 +75,8 @@ def getWeatherInformation(text):
         elif len_place > max_len_place:
             raise OverLengthError(place, "InputCheckError")
 
-            #primary_area.xmlから地名と対応するcity_idを格納
+        #primary_area.xmlから地名と対応するcity_idを格納
+        #This calls from an XML file designated in city_list.py
         city_dict = city_list.get_weather_list()
 
         #地名でリストを検索し、ヒットした地名のcity_idを格納
@@ -80,8 +87,15 @@ def getWeatherInformation(text):
         url = weather_api_url + "?city=" + city_id
 
         #URLから天気情報をJSON形式で取得し、response_dictへ格納
-        response = Request(url, headers = {'User-Agent'* 'Mozilla/5.0'})
+        #Request class instance has to have at least a url and headers
+        #Most web browsers require a User-Agent header to specify what browser is
+        #connecting
+
+        response = Request(url, headers = {'User-Agent':'Mozilla/5.0'})
+        #Urlopen below opens the URL in the Request
         response = urlopen(response)
+        #.loads is a JSON function that takes strings and puts them in dictionary form
+        #Regular .load READS (doesnt convert) files in a dictionary format
         response_dict = json.loads(response.read())
 
         #都道府県名を取得
@@ -96,11 +110,12 @@ def getWeatherInformation(text):
         #JSONから、今日・明日・明後日の天気を取得し、配列に格納
         forecasts_array = response_dict[forecasts]
 
-        forecast_array = []
+        forecast_array = [] #This will be used in the response_string
 
         for forecast in forecasts_array:
             telop = forecast["telop"]
             telop_icon = ''
+            #Find looks for the index of where that value is in the string and returns that number
             if telop.find('雪') > -1:
                 telop_icon = 'snowman'
             elif telop.find('雷') > -1:
@@ -123,14 +138,26 @@ def getWeatherInformation(text):
             min_temp = temperature["min"]
             max_temp = temperature["max"]
             temp_text = ''
+            #Makes sure that you are getting at least the min temp to verify them
+            #Response worked correctly
             if min_temp is not None:
+                #Adds the min and max temps to a string to add to the response string.
+                #\n is a newline escape sequence.
                 if len(min_temp) > 0:
                     temp_text += '\n最低気温は' + min_temp["celsius"] + "度です。"
                 if len(max_temp) > 0:
                     temp_text += '\n最高気温は' + max_temp["celsius"] + "度です。"
+                #Append the date, telop (weather kanji), telop icon, and the text regarding
+                #the temperature we created above to the forecast_array
                 forecast_array.append(forecast["dateLabel"] + ' ' + telop + telop_icon + temp_text)
             if len(forecast_array) > 0:
+                #If the length of the forecast_array is more than 1, add it to the
+                #response string
                 response_string += '\n\n'.join(forecast_array)
+            #Response string at this point has the title, the temp text with the
+            #emojis.
+            #Adding the below description draws from the response_dict above for a
+            #complete weather description
             response_string += '\n\n' + description
 
         #例外処理
